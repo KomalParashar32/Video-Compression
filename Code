@@ -1,0 +1,68 @@
+import cv2
+import math
+import numpy as np
+import os
+import glob
+import imageio
+
+
+videoFile = 'F://image//test.mp4'
+imagesFolder = 'F://image//frames'
+diffFolder = 'F://image//diff'
+pathOut = 'F://image//video2.mp4'
+cap = cv2.VideoCapture(videoFile)
+frameRate = cap.get(5) #frame rate
+frameID = 291
+while(cap.isOpened()):
+    frameId = cap.get(1) #current frame number
+    ret, frame = cap.read()
+    if (ret != True):
+        break
+    if (frameId % math.floor(frameRate) == 0):
+        filename = imagesFolder + "/image_" +  str(int(frameId)) + ".jpg"
+        cv2.imwrite(filename, frame)
+cap.release()
+print ("Done!")
+i = 0
+frameArray = []
+while i < frameID:
+    image1 = cv2.imread(imagesFolder + "/image_" +  str(int(i*30)) + ".jpg",cv2.IMREAD_UNCHANGED)
+    #gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    image2 = cv2.imread(imagesFolder + "/image_" +  str(int(i*30 + 30)) + ".jpg",cv2.IMREAD_UNCHANGED)
+    #gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    image3 = cv2.subtract(image2,image1)
+    #height, width = image3.shape
+    #size = (width,height)
+    diffFile = diffFolder + "/diff_" +  str(int(i*30 + 30)) + "_" + str(int(i*30)) + ".jpg"
+    cv2.imwrite(diffFile, image3)
+    frameArray.append(image3)
+    data=imageio.imread(diffFolder + "/diff_" +  str(int(i*30 + 30)) + "_" + str(int(i*30)) + ".jpg")
+    i=i+1
+    data=imageio.imread(diffFolder + "/diff_" +  str(int(i*30 + 30)) + "_" + str(int(i*30)) + ".jpg")
+    rows, cols, z = np.nonzero(data)
+    
+    class fullprint:
+        'context manager for printing full numpy arrays'
+
+        def __init__(self, **kwargs):
+            if 'threshold' not in kwargs:
+                kwargs['threshold'] = np.nan
+            self.opt = kwargs
+
+        def __enter__(self):
+            self._opt = np.get_printoptions()
+            np.set_printoptions(**self.opt)
+
+        def __exit__(self, type, value, traceback):
+            np.set_printoptions(**self._opt)
+            
+        with fullprint():
+            with open('F://image//txt//out.txt', 'w') as f:
+                for item in data[rows, cols]:
+                    f.write("%s" % item)
+            
+
+        with fullprint(threshold=None, edgeitems=10): 
+            with open('F://image//txt//out.txt', 'w') as f:
+                for item in data[rows,cols]:
+                    f.write("%s" % item)
